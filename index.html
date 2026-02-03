@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>人物炼金台 | Psyche Alchemist</title>
+    <style>
+        /* --- 0. 全局变量：黑金配色 (增强版) --- */
+        :root {
+            --bg-deep: #050505;
+            --card-bg: rgba(16, 16, 16, 0.92); /* 稍微加深背景 */
+            --gold-dim: #8a7348;
+            --gold-bright: #ffdb8b; 
+            --gold-glow: rgba(255, 215, 0, 0.25); /* 调整光晕透明度 */
+            --text-main: #e0d6c5;
+            --border-color: #4a3b22;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: "Songti SC", "SimSun", serif;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 20px;
+            overflow-x: hidden; -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- 1. 背景特效 (流金星云) --- */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(80, 50, 10, 0.4) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(100, 70, 20, 0.3) 0%, transparent 60%);
+            animation: breathe 10s ease-in-out infinite alternate;
+        }
+        @keyframes breathe {
+            0% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.05); }
+        }
+
+        .dust {
+            position: absolute;
+            background: var(--gold-bright);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--gold-bright); 
+            animation: float var(--duration) linear infinite;
+            opacity: 0;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* --- 2. 顶部导航 --- */
+        .header {
+            width: 100%; max-width: 1000px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 25px; z-index: 10;
+        }
+        .title-group h1 {
+            margin: 0; font-size: 1.8rem; color: var(--gold-bright);
+            letter-spacing: 5px; 
+            text-shadow: 0 0 15px var(--gold-glow); 
+            font-weight: normal;
+        }
+        .title-group p { margin: 6px 0 0; font-size: 0.8rem; color: var(--gold-dim); letter-spacing: 3px; }
+
+        .top-btns { display: flex; gap: 10px; }
+        .nav-btn {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold-bright);
+            padding: 6px 14px; font-size: 0.8rem; border-radius: 4px;
+            cursor: pointer; transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .nav-btn:hover {
+            background: var(--gold-dim); color: #000;
+            box-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        /* --- 3. 配置区 --- */
+        .config-bar {
+            width: 100%; max-width: 1000px;
+            background: rgba(20, 15, 5, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 18px; border-radius: 8px;
+            display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(212, 175, 55, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        .input-group { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
+        .input-label { font-size: 0.75rem; color: var(--gold-dim); letter-spacing: 1px; }
+        .glod-input {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border-color);
+            color: var(--gold-bright); padding: 10px 12px; border-radius: 4px;
+            font-family: inherit; font-size: 0.9rem; transition: 0.3s;
+        }
+        .glod-input:focus { border-color: var(--gold-bright); box-shadow: 0 0 15px var(--gold-glow); }
+
+        /* --- 4. 主工作区 --- */
+        .main-container {
+            display: flex; gap: 30px; width: 100%; max-width: 1100px;
+            flex-wrap: wrap; z-index: 5;
+        }
+
+        /* 左侧控制台 */
+        .controls-panel {
+            flex: 1; min-width: 300px;
+            background: var(--card-bg);
+            padding: 30px; border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; gap: 24px;
+        }
+
+        /* 学术解释折叠栏 */
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .control-label { color: var(--gold-bright); font-size: 1rem; text-shadow: 0 0 8px var(--gold-glow); letter-spacing: 1px; }
+        .info-icon {
+            color: var(--gold-dim); border: 1px solid var(--gold-dim);
+            width: 18px; height: 18px; border-radius: 50%;
+            font-size: 12px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s; opacity: 0.7;
+        }
+        .info-icon:hover { opacity: 1; background: var(--gold-bright); color: #000; border-color: var(--gold-bright); box-shadow: 0 0 10px var(--gold-glow); }
+
+        .info-text {
+            font-size: 0.85rem; color: #a89f91; line-height: 1.6;
+            background: rgba(0,0,0,0.4); padding: 0 12px;
+            border-left: 2px solid var(--gold-dim);
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease, margin 0.4s ease;
+            margin-bottom: 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .info-text.show { max-height: 300px; padding: 12px; margin-bottom: 15px; }
+
+        select.glod-select {
+            width: 100%; background: #0a0a0a; border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 12px; border-radius: 4px;
+            font-family: "Songti SC", serif; font-size: 1rem; appearance: none;
+            transition: 0.3s;
+        }
+        select.glod-select:focus { border-color: var(--gold-bright); box-shadow: 0 0 15px var(--gold-glow); }
+
+        .alchemy-btn {
+            margin-top: 15px; padding: 16px;
+            background: linear-gradient(135deg, #2b2210 0%, #080808 100%);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold-bright); font-size: 1.1rem; letter-spacing: 4px;
+            cursor: pointer; border-radius: 4px; transition: all 0.4s;
+            text-shadow: 0 0 8px var(--gold-glow);
+            position: relative; overflow: hidden;
+        }
+        .alchemy-btn:hover {
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 35px var(--gold-glow), inset 0 0 20px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+        .alchemy-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* 右侧结果 */
+        .result-panel {
+            flex: 1.5; min-width: 300px;
+            background: rgba(10, 10, 10, 0.9); padding: 40px; border-radius: 6px;
+            border: 1px solid var(--border-color); min-height: 600px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .result-panel::before {
+            content: ''; position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px;
+            border: 1px solid rgba(138, 115, 72, 0.2); pointer-events: none;
+        }
+        #output-content {
+            white-space: pre-wrap; line-height: 1.9; font-size: 1.05rem; opacity: 0.95;
+            color: var(--text-main); height: 100%; overflow-y: auto;
+            scrollbar-width: thin; scrollbar-color: var(--border-color) transparent;
+        }
+        h3 { color: var(--gold-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-top: 30px; font-weight: normal; letter-spacing: 2px; }
+        strong { color: var(--gold-bright); font-weight: normal; }
+        blockquote { 
+            border-left: 3px solid var(--gold-dim); margin: 20px 0; padding-left: 20px; 
+            color: #bfaea8; font-style: italic; font-family: "KaiTi", serif;
+        }
+
+        /* --- 5. 弹窗 --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(8px);
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-box {
+            width: 90%; max-width: 650px; max-height: 85vh;
+            background: #111; border: 1px solid var(--gold-dim);
+            padding: 40px; border-radius: 8px;
+            box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
+            overflow-y: auto; text-align: left;
+        }
+        .modal-box h2 { margin-top: 0; color: var(--gold-bright); text-align: center; font-weight: normal; letter-spacing: 3px; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .modal-box h3 { color: var(--gold-dim); margin-top: 25px; font-size: 1.1rem; }
+        .modal-box p, .modal-box li { color: #ccc; line-height: 1.8; font-size: 0.95rem; margin-bottom: 10px; }
+        .close-modal {
+            display: block; margin: 30px auto 0;
+            background: transparent; border: 1px solid var(--gold-dim);
+            color: var(--gold-dim); padding: 10px 35px; cursor: pointer; transition: 0.3s;
+            font-size: 0.9rem; letter-spacing: 2px;
+        }
+        .close-modal:hover { background: var(--gold-dim); color: #000; box-shadow: 0 0 15px var(--gold-glow); }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 15px; }
+            .main-container { flex-direction: column; }
+            .result-panel { min-height: 400px; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+    <div id="dust-container"></div>
+
+    <div class="header">
+        <div class="title-group">
+            <h1>人物炼金台</h1>
+            <p>PSYCHE ALCHEMIST</p>
+        </div>
+        <div class="top-btns">
+            <button class="nav-btn" onclick="openModal('theory')">📜 原理 (Theory)</button>
+            <button class="nav-btn" onclick="openModal('usage')">🔑 使用指南 (Guide)</button>
+        </div>
+    </div>
+
+    <div class="config-bar">
+        <div class="input-group">
+            <span class="input-label">AI 服务商</span>
+            <select id="provider-select" class="glod-input" onchange="updateProvider()">
+                <option value="silicon_cn" selected>硅基流动 (推荐)</option>
+                <option value="silicon_com">硅基流动 (备用)</option>
+                <option value="deepseek">DeepSeek 官方</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <span class="input-label">模型</span>
+            <select id="model-select" class="glod-input">
+                <option value="deepseek-ai/DeepSeek-V3" selected>DeepSeek-V3</option>
+                <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1</option>
+            </select>
+        </div>
+        <div class="input-group" style="flex: 2;">
+            <span class="input-label">API Key</span>
+            <input type="password" id="api-key" class="glod-input" placeholder="sk-...">
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="controls-panel">
+            
+            <div class="control-item">
+                <div class="label-row">
+                    <label class="control-label">1. 原型内核 (Archetype)</label>
+                    <div class="info-icon" onclick="toggleInfo('info-archetype')">?</div>
+                </div>
+                <div id="info-archetype" class="info-text">
+                    <strong>原型（Archetype）：</strong>基于荣格《原型与集体无意识》[CW 9i]。原型并非具体的人物，而是集体无意识中预存的“形式”或“干枯的河床” (Riverbed)。只有当个人经验之水流过，它才显现出具体的性格。本工具采用维多利亚·施密特的45种神话模型进行现代转译。
+                </div>
+                <select id="archetype" class="glod-select">
+                    <option value="" disabled selected>-- 请选择核心人格 --</option>
+                    <optgroup label="【理智与秩序】">
+                        <option value="实干家 (Apollo)">实干家：追求目标与秩序 (Apollo)</option>
+                        <option value="策略家 (Athena)">策略家：理智、甚至有些冷酷 (Athena)</option>
+                        <option value="隐士 (Hades)">隐士：深邃的孤独观察者 (Hades)</option>
+                    </optgroup>
+                    <optgroup label="【权力与意志】">
+                        <option value="领袖 (Zeus)">领袖：掌控一切的权威 (Zeus)</option>
+                        <option value="女族长 (Hera)">女族长：家庭与权力的守护者 (Hera)</option>
+                        <option value="战士 (Ares)">战士：为了胜利而战 (Ares)</option>
+                    </optgroup>
+                    <optgroup label="【情感与连接】">
+                        <option value="照顾者 (Demeter)">照顾者：无私的奉献 (Demeter)</option>
+                        <option value="艺术家 (Poseidon)">艺术家：情绪风暴的中心 (Poseidon)</option>
+                        <option value="缪斯 (Aphrodite)">缪斯：灵感与诱惑的化身 (Aphrodite)</option>
+                    </optgroup>
+                    <optgroup label="【自由与变革】">
+                        <option value="弄臣 (Hermes)">弄臣：幽默的边界打破者 (Hermes)</option>
+                        <option value="女猎手 (Artemis)">女猎手：独立的自然之女 (Artemis)</option>
+                        <option value="浪子 (Dionysus)">浪子：永远长不大的彼得潘 (Dionysus)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="control-item">
+                <div class="label-row">
+                    <label class="control-label">2. 阴影 (The Shadow)</label>
+                    <div class="info-icon" onclick="toggleInfo('info-shadow')">?</div>
+                </div>
+                <div id="info-shadow" class="info-text">
+                    <strong>阴影（Shadow）：</strong>荣格认为阴影是“通往无意识的狭窄之门”[CW 9i]。它是人格中因适应社会而被压抑的黑暗面，但也是生命力和创造力的源泉。没有阴影的人物是扁平的“纸片人”。我们不仅要看它的破坏力，更要看它如何推动人物成长。
+                </div>
+                <select id="shadow" class="glod-select">
+                    <option value="auto">🔮 随机匹配 (AI分析最深恐惧)</option>
+                    <option value="独裁者">独裁者 (对应领袖)</option>
+                    <option value="背叛者">背叛者 (对应实干家)</option>
+                    <option value="毁灭者">毁灭者 (对应战士)</option>
+                    <option value="受害者">受害者 (对应照顾者)</option>
+                    <option value="成瘾者">成瘾者 (对应浪子)</option>
+                    <option value="黑寡妇">黑寡妇 (对应缪斯)</option>
+                    <option value="冷血机器">冷血机器 (对应策略家)</option>
+                </select>
+            </div>
+
+            <div class="control-item">
+                <div class="label-row">
+                    <label class="control-label">3. 旅程阶段 (The Journey)</label>
+                    <div class="info-icon" onclick="toggleInfo('info-stage')">?</div>
+                </div>
+                <div id="info-stage" class="info-text">
+                    <strong>英雄之旅（Hero's Journey）：</strong>基于约瑟夫·坎贝尔《千面英雄》。神话不仅是故事，而是心理成长的隐喻。单一神话结构包括：启程（响应召唤）、试炼（鲸鱼之腹/最低谷）、归来（跨越阈限并带回恩赐）。
+                </div>
+                <select id="stage" class="glod-select">
+                    <option value="启程：日常生活的崩塌">启程：日常生活的崩塌</option>
+                    <option value="试炼：鲸鱼之腹">试炼：鲸鱼之腹 (最低谷)</option>
+                    <option value="高潮：与阴影的决战">高潮：与阴影的决战</option>
+                    <option value="归来：跨越回归的阈限">归来：跨越回归的阈限</option>
+                </select>
+            </div>
+
+            <div class="control-item">
+                <label class="control-label">4. 时代背景 (Context)</label>
+                <input type="text" id="context" class="glod-input" value="现代都市" placeholder="例：2077年赛博夜之城...">
+            </div>
+
+            <button class="alchemy-btn" onclick="generateProfile()">⚗️ 注入灵魂 · 开始炼成</button>
+        </div>
+
+        <div class="result-panel">
+            <div id="output-content">
+                <div style="text-align:center; color:#666; padding-top:100px;">
+                    <p style="font-size:3rem; margin:0; opacity:0.3;">⚗️</p>
+                    <p>等待点燃炼金之火...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-theory" class="modal-overlay">
+        <div class="modal-box">
+            <h2>心理学与炼金术</h2>
+            <div style="text-align:center; font-style:italic; color:#8a7348; margin-bottom:20px;">
+                "只要你没有觉知到潜意识，它就会主导你的生活，而你称之为命运。" —— C.G.Jung
+            </div>
+            <p><strong>为什么叫“人物炼金台”？</strong><br>
+            荣格在《心理学与炼金术》中指出，中世纪炼金术士试图将铅变成金的过程，实际上是人类心灵“个性化”（Individuation）的隐喻。本工具正是基于这一理念：创作人物的过程，就是将粗糙的性格素材（铅），通过阴影的试炼，转化为完整灵魂（金）的过程。</p>
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+            <h3>理论基石</h3>
+            <ul>
+                <li><strong>荣格分析心理学 (Jungian Analytical Psychology)：</strong> 提供“原型”作为心理结构的基础，提供“阴影”作为心理动力的源泉。</li>
+                <li><strong>神话学 (Joseph Campbell)：</strong> 提供“英雄之旅”作为叙事的时间轴，隐喻人的成长阶段。</li>
+                <li><strong>经典人物原型45种 (Victoria Lynn Schmidt)：</strong> 提供45种原型的现代转译，连接神话与现实。</li>
+            </ul>
+            <button class="close-modal" onclick="closeModal('theory')">关闭</button>
+        </div>
+    </div>
+
+    <div id="modal-usage" class="modal-overlay">
+        <div class="modal-box">
+            <h2>使用指南</h2>
+            <p>本工具需要接入 AI 大模型（DeepSeek）来驱动。</p>
+            <ol>
+                <li><strong>获取 Key：</strong> 推荐使用 <a href="https://cloud.siliconflow.cn/" target="_blank" style="color:var(--gold-bright)">硅基流动</a> (注册送免费额度)。</li>
+                <li><strong>填入 Key：</strong> 将 sk- 开头的密钥粘贴到本页顶部。</li>
+                <li><strong>点击 ? 图标：</strong> 查看每个学术概念的深度解释。</li>
+                <li><strong>开始：</strong> 配置参数，点击炼成。</li>
+            </ol>
+            <button class="close-modal" onclick="closeModal('usage')">我明白了</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 逻辑：解释文本展开 ---
+        function toggleInfo(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('show');
+        }
+
+        // --- 特效：流金尘埃 ---
+        function createDust() {
+            const container = document.getElementById('dust-container');
+            for(let i=0; i<45; i++) {
+                const dust = document.createElement('div');
+                dust.className = 'dust';
+                dust.style.left = Math.random() * 100 + '%';
+                dust.style.width = Math.random() * 4 + 'px';
+                dust.style.height = dust.style.width;
+                dust.style.setProperty('--duration', Math.random() * 5 + 6 + 's');
+                dust.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(dust);
+            }
+        }
+        createDust();
+
+        // --- 逻辑：弹窗/API/生成 ---
+        function openModal(id) { document.getElementById('modal-' + id).classList.add('active'); }
+        function closeModal(id) { document.getElementById('modal-' + id).classList.remove('active'); }
+
+        const providers = {
+            'silicon_cn': 'https://api.siliconflow.cn/v1/chat/completions',
+            'silicon_com': 'https://api.siliconflow.com/v1/chat/completions',
+            'deepseek': 'https://api.deepseek.com/chat/completions'
+        };
+
+        const apiKeyInput = document.getElementById('api-key');
+        if(localStorage.getItem('user_api_key')) apiKeyInput.value = localStorage.getItem('user_api_key');
+        apiKeyInput.addEventListener('input', (e) => localStorage.setItem('user_api_key', e.target.value));
+
+        async function generateProfile() {
+            const providerKey = document.getElementById('provider-select').value;
+            const baseUrl = providers[providerKey];
+            const modelName = document.getElementById('model-select').value;
+            const apiKey = apiKeyInput.value.trim();
+
+            const archetype = document.getElementById('archetype').value;
+            const shadow = document.getElementById('shadow').value;
+            const stage = document.getElementById('stage').value;
+            const context = document.getElementById('context').value;
+            const outputDiv = document.getElementById('output-content');
+            const btn = document.querySelector('.alchemy-btn');
+
+            if (!apiKey) { alert("请先填入 API Key"); return; }
+            if (!archetype) { alert("请选择原型"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = "🔥 炼金之火燃烧中...";
+            outputDiv.innerHTML = '<div style="text-align:center; color:#8a7348; margin-top:50px;">正在连接集体无意识...<br>解析 ' + archetype + '...</div>';
+
+            const prompt = `
+                你是一位精通荣格分析心理学、《心理学与炼金术》及坎贝尔神话学的创意写作专家。
+                请基于以下参数，通过“心理炼金”的过程，生成一份深度人物小传（HTML格式）：
+                
+                1.原型(河床)：${archetype} (参考《经典人物原型45种》，必须现代化)
+                2.阴影(动力)：${shadow} (这是通往无意识的狭窄之门，请展示其生命力与破坏力)
+                3.旅程(时间)：${stage} (坎贝尔英雄之旅结构)
+                4.背景：${context}
+
+                请按以下HTML结构输出（冷峻、心理动力学视角）：
+                <h3>Ⅰ. 人物侧写 (Profile)</h3>
+                <p>
+                <strong>姓名：</strong>[随机]<br>
+                <strong>表象职业：</strong>[反差感职业]<br>
+                <strong>核心欲望：</strong>[原型动力]<br>
+                <strong>最大恐惧：</strong>[阴影恐惧]
+                </p>
+
+                <h3>Ⅱ. 心理深度 (Psyche)</h3>
+                <p><strong>光明的面具 (Persona)：</strong>[他在别人眼中的样子]</p>
+                <p><strong>阴影的低语 (Shadow)：</strong>[${shadow}如何在无意识中接管他？它不仅是邪恶，也是被压抑的生命力。]</p>
+                
+                <h3>Ⅲ. 炼金时刻 (${stage})</h3>
+                <p><strong>当前的试炼：</strong>[现实冲突，隐喻神话内核]</p>
+                <p><strong>转化与牺牲：</strong>[为了完成个性化(Individuation)，他必须牺牲什么？]</p>
+
+                <h3>Ⅳ. 命运独白</h3>
+                <blockquote>“[一句台词]”</blockquote>
+            `;
+
+            try {
+                const response = await fetch(baseUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+                    body: JSON.stringify({
+                        model: modelName,
+                        messages: [
+                            {"role": "system", "content": "You are a creative writing assistant specialized in Jungian psychology."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        stream: true,
+                        temperature: 0.8
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error ${response.status}: ${errorText}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                outputDiv.innerHTML = "";
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    lines.forEach(line => {
+                        if (line.startsWith('data: ')) {
+                            const jsonStr = line.replace('data: ', '');
+                            if (jsonStr === '[DONE]') return;
+                            try {
+                                const json = JSON.parse(jsonStr);
+                                const content = json.choices[0].delta.content || "";
+                                let formatted = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                                outputDiv.innerHTML += formatted;
+                                outputDiv.scrollTop = outputDiv.scrollHeight;
+                            } catch (e) {}
+                        }
+                    });
+                }
+
+            } catch (error) {
+                outputDiv.innerHTML = `<div style="color:#a33; border:1px solid #a33; padding:15px;"><strong>炼成失败</strong><br>${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "⚗️ 注入灵魂 · 开始炼成";
+            }
+        }
+    </script>
+</body>
+</html>
