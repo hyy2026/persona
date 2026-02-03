@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>人物炼金台 | Psyche Alchemist</title>
     <style>
-        /* --- 0. 全局变量：黑金配色 (增强版) --- */
+        /* --- 0. 全局变量：黑金配色 (修复版) --- */
         :root {
             --bg-deep: #050505;
-            --card-bg: rgba(16, 16, 16, 0.92);
+            --card-bg: rgba(16, 16, 16, 0.95); /* 加深背景防止透视干扰 */
             --gold-dim: #8a7348;
             --gold-bright: #ffdb8b; 
             --gold-glow: rgba(255, 215, 0, 0.25);
@@ -16,7 +16,7 @@
             --border-color: #4a3b22;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             margin: 0;
@@ -25,17 +25,21 @@
             font-family: "Songti SC", "SimSun", serif;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; padding: 20px;
-            overflow-x: hidden; -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
 
-        /* --- 1. 背景特效 (流金星云) --- */
-        .bg-layer {
-            position: absolute;
+        /* --- 1. 背景特效 (修复交互阻挡问题) --- */
+        .bg-layer, #dust-container {
+            position: fixed; /* 改为 fixed 防止滚动问题 */
             top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* 关键修复：让点击穿透背景 */
             z-index: -1;
+        }
+
+        .bg-layer {
             background: 
-                radial-gradient(circle at 30% 20%, rgba(80, 50, 10, 0.4) 0%, transparent 60%),
-                radial-gradient(circle at 70% 80%, rgba(100, 70, 20, 0.3) 0%, transparent 60%);
+                radial-gradient(circle at 30% 20%, rgba(80, 50, 10, 0.3) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(100, 70, 20, 0.2) 0%, transparent 60%);
             animation: breathe 10s ease-in-out infinite alternate;
         }
         @keyframes breathe {
@@ -48,7 +52,7 @@
             background: var(--gold-bright);
             border-radius: 50%;
             box-shadow: 0 0 6px var(--gold-bright); 
-            animation: float var(--duration) linear infinite;
+            animation: float linear infinite;
             opacity: 0;
         }
         @keyframes float {
@@ -62,6 +66,7 @@
             width: 100%; max-width: 1000px;
             display: flex; justify-content: space-between; align-items: flex-start;
             margin-bottom: 25px; z-index: 10;
+            position: relative; /* 确保层级正确 */
         }
         .title-group h1 {
             margin: 0; font-size: 1.8rem; color: var(--gold-bright);
@@ -76,12 +81,13 @@
             background: rgba(0,0,0,0.6);
             border: 1px solid var(--gold-dim);
             color: var(--gold-bright);
-            padding: 6px 14px; font-size: 0.8rem; border-radius: 4px;
+            padding: 8px 16px; /* 加大点击区域 */
+            font-size: 0.85rem; border-radius: 4px;
             cursor: pointer; transition: all 0.3s;
             backdrop-filter: blur(5px);
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            white-space: nowrap;
         }
-        .nav-btn:hover {
+        .nav-btn:hover, .nav-btn:active {
             background: var(--gold-dim); color: #000;
             box-shadow: 0 0 20px var(--gold-glow);
         }
@@ -93,15 +99,17 @@
             border: 1px solid var(--border-color);
             padding: 18px; border-radius: 8px;
             display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(212, 175, 55, 0.05);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
             backdrop-filter: blur(10px);
+            z-index: 5;
         }
         .input-group { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
         .input-label { font-size: 0.75rem; color: var(--gold-dim); letter-spacing: 1px; }
         .glod-input {
             background: rgba(0,0,0,0.5); border: 1px solid var(--border-color);
             color: var(--gold-bright); padding: 10px 12px; border-radius: 4px;
-            font-family: inherit; font-size: 0.9rem; transition: 0.3s;
+            font-family: inherit; font-size: 16px; /* 防止iOS缩放 */
+            transition: 0.3s;
         }
         .glod-input:focus { border-color: var(--gold-bright); box-shadow: 0 0 15px var(--gold-glow); }
 
@@ -122,54 +130,54 @@
             display: flex; flex-direction: column; gap: 24px;
         }
 
-        /* 学术解释折叠栏 */
+        /* 标签与解释图标 */
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .control-label { color: var(--gold-bright); font-size: 1rem; text-shadow: 0 0 8px var(--gold-glow); letter-spacing: 1px; }
+        
         .info-icon {
             color: var(--gold-dim); border: 1px solid var(--gold-dim);
-            width: 18px; height: 18px; border-radius: 50%;
+            width: 20px; height: 20px; border-radius: 50%;
             font-size: 12px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s; opacity: 0.7;
+            cursor: pointer; transition: 0.3s; opacity: 0.8;
+            margin-left: 10px;
         }
-        .info-icon:hover { opacity: 1; background: var(--gold-bright); color: #000; border-color: var(--gold-bright); box-shadow: 0 0 10px var(--gold-glow); }
+        .info-icon:hover { opacity: 1; background: var(--gold-bright); color: #000; border-color: var(--gold-bright); }
 
+        /* 解释文本 (默认隐藏) */
         .info-text {
             font-size: 0.85rem; color: #a89f91; line-height: 1.6;
-            background: rgba(0,0,0,0.4); padding: 0 12px;
+            background: rgba(0,0,0,0.4); 
             border-left: 2px solid var(--gold-dim);
-            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease, margin 0.4s ease;
+            max-height: 0; overflow: hidden; 
+            padding: 0 12px;
+            transition: all 0.4s ease;
             margin-bottom: 0;
-            border-radius: 0 4px 4px 0;
         }
-        .info-text.show { max-height: 300px; padding: 12px; margin-bottom: 15px; }
+        .info-text.show { max-height: 500px; padding: 12px; margin-bottom: 15px; }
 
         select.glod-select {
             width: 100%; background: #0a0a0a; border: 1px solid var(--border-color);
             color: var(--text-main); padding: 12px; border-radius: 4px;
-            font-family: "Songti SC", serif; font-size: 1rem; appearance: none;
-            transition: 0.3s;
+            font-family: "Songti SC", serif; font-size: 16px; /* 防止iOS缩放 */
+            appearance: none; transition: 0.3s;
         }
         select.glod-select:focus { border-color: var(--gold-bright); box-shadow: 0 0 15px var(--gold-glow); }
         
-        /* optgroup 样式优化 */
-        optgroup { color: var(--gold-dim); font-style: normal; font-weight: bold; }
-        option { color: var(--text-main); background: #111; padding: 5px; }
+        optgroup { color: var(--gold-dim); font-style: normal; font-weight: bold; background: #1a1a1a; }
+        option { color: var(--text-main); background: #000; padding: 5px; }
 
         .alchemy-btn {
-            margin-top: 15px; padding: 16px;
+            margin-top: 20px; padding: 18px;
             background: linear-gradient(135deg, #2b2210 0%, #080808 100%);
             border: 1px solid var(--gold-dim);
             color: var(--gold-bright); font-size: 1.1rem; letter-spacing: 4px;
-            cursor: pointer; border-radius: 4px; transition: all 0.4s;
+            cursor: pointer; border-radius: 4px; transition: all 0.2s;
             text-shadow: 0 0 8px var(--gold-glow);
             position: relative; overflow: hidden;
+            z-index: 10; /* 保证按钮在最上层 */
         }
-        .alchemy-btn:hover {
-            border-color: var(--gold-bright);
-            box-shadow: 0 0 35px var(--gold-glow), inset 0 0 20px rgba(212, 175, 55, 0.2);
-            transform: translateY(-2px);
-        }
-        .alchemy-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
+        .alchemy-btn:active { transform: scale(0.98); }
+        .alchemy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* 右侧结果 */
         .result-panel {
@@ -190,41 +198,49 @@
         }
         h3 { color: var(--gold-bright); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-top: 30px; font-weight: normal; letter-spacing: 2px; }
         strong { color: var(--gold-bright); font-weight: normal; }
-        blockquote { 
-            border-left: 3px solid var(--gold-dim); margin: 20px 0; padding-left: 20px; 
-            color: #bfaea8; font-style: italic; font-family: "KaiTi", serif;
-        }
+        blockquote { border-left: 3px solid var(--gold-dim); margin: 20px 0; padding-left: 20px; color: #bfaea8; font-style: italic; }
 
-        /* --- 5. 弹窗 --- */
+        /* --- 5. 弹窗 (修复排版与交互) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 100;
+            background: rgba(0,0,0,0.95); z-index: 200; /* 层级最高 */
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(8px);
         }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
+        
         .modal-box {
             width: 90%; max-width: 650px; max-height: 85vh;
             background: #111; border: 1px solid var(--gold-dim);
             padding: 40px; border-radius: 8px;
             box-shadow: 0 0 60px rgba(212, 175, 55, 0.15);
-            overflow-y: auto; text-align: left;
+            overflow-y: auto; 
+            text-align: left; /* 关键修复：强制左对齐 */
         }
-        .modal-box h2 { margin-top: 0; color: var(--gold-bright); text-align: center; font-weight: normal; letter-spacing: 3px; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        .modal-box h3 { color: var(--gold-dim); margin-top: 25px; font-size: 1.1rem; }
+        .modal-box h2 { 
+            margin-top: 0; color: var(--gold-bright); 
+            text-align: center; /* 仅标题居中 */
+            font-weight: normal; letter-spacing: 3px; 
+            border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; 
+        }
+        .modal-box h3 { color: var(--gold-dim); margin-top: 25px; font-size: 1.1rem; border: none; padding: 0;}
         .modal-box p, .modal-box li { color: #ccc; line-height: 1.8; font-size: 0.95rem; margin-bottom: 10px; }
+        
         .close-modal {
             display: block; margin: 30px auto 0;
             background: transparent; border: 1px solid var(--gold-dim);
-            color: var(--gold-dim); padding: 10px 35px; cursor: pointer; transition: 0.3s;
+            color: var(--gold-dim); padding: 12px 40px; cursor: pointer; transition: 0.3s;
             font-size: 0.9rem; letter-spacing: 2px;
         }
-        .close-modal:hover { background: var(--gold-dim); color: #000; box-shadow: 0 0 15px var(--gold-glow); }
+        .close-modal:hover { background: var(--gold-dim); color: #000; }
 
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 15px; }
+            .top-btns { width: 100%; justify-content: space-between; }
+            .nav-btn { flex: 1; text-align: center; }
             .main-container { flex-direction: column; }
             .result-panel { min-height: 400px; padding: 20px; }
+            .modal-box { padding: 25px; }
         }
     </style>
 </head>
@@ -271,73 +287,74 @@
             
             <div class="control-item">
                 <div class="label-row">
-                    <label class="control-label">1. 原型内核 (Archetype)</label>
+                    <label class="control-label">1. 人物原型 (Archetype)</label>
                     <div class="info-icon" onclick="toggleInfo('info-archetype')">?</div>
                 </div>
                 <div id="info-archetype" class="info-text">
-                    <strong>原型（Archetype）：</strong>基于荣格《原型与集体无意识》[CW 9i]。本工具收录了维多利亚·施密特《经典人物原型45种》中的全部主要原型。请注意：括号内的神话名字（如 Apollo）仅为心理能量的代号，请将其理解为一种现代性格倾向。
+                    <strong>人物原型：</strong>基于荣格《原型与集体无意识》[CW 9i]与施密特《经典人物原型45种》。所有神话名字（如 Apollo）均为心理能量代号。本列表已包含原书所有主神及关键配角（导师、侦探等），请将其理解为人物的性格底色。
                 </div>
                 <select id="archetype" class="glod-select">
                     <option value="" disabled selected>-- 请选择人物原型 --</option>
                     
-                    <optgroup label="【理智与策略】 (Apollo/Athena系)">
-                        <option value="实干家 (Businessman/Apollo)">实干家：追求目标与秩序 (Apollo)</option>
-                        <option value="叛徒 (Traitor)">叛徒：为了利益出卖盟友 (Apollo Shadow)</option>
-                        <option value="策略家 (Father's Daughter/Athena)">策略家：理智、甚至有些冷酷 (Athena)</option>
-                        <option value="背后捅刀者 (Backstabber)">背后捅刀者：职场阴谋家 (Athena Shadow)</option>
-                        <option value="隐士 (Recluse/Hades)">隐士：深邃的孤独观察者 (Hades)</option>
-                        <option value="术士 (Warlock)">术士：危险的边缘人 (Hades Shadow)</option>
-                        <option value="导师 (Mentor)">导师：智慧的指引者 (Mentor)</option>
-                        <option value="侦探/调查员 (Investigator)">侦探：寻找真相的人 (Investigator)</option>
+                    <optgroup label="【理智与策略】 (Apollo/Athena 系)">
+                        <option value="实干家 (Businessman/Apollo)">实干家 (Apollo)</option>
+                        <option value="叛徒 (Traitor)">叛徒 (Apollo Shadow)</option>
+                        <option value="策略家 (Father's Daughter/Athena)">策略家 (Athena)</option>
+                        <option value="背后捅刀者 (Backstabber)">背后捅刀者 (Athena Shadow)</option>
+                        <option value="隐士 (Recluse/Hades)">隐士 (Hades)</option>
+                        <option value="术士 (Warlock)">术士 (Hades Shadow)</option>
+                        <option value="导师 (Mentor)">导师 (Mentor)</option>
+                        <option value="侦探 (Investigator)">侦探 (Investigator)</option>
                     </optgroup>
 
-                    <optgroup label="【权力与统治】 (Zeus/Hera系)">
-                        <option value="领袖/国王 (King/Zeus)">领袖：掌控一切的权威 (Zeus)</option>
-                        <option value="独裁者 (Dictator)">独裁者：偏执的暴君 (Zeus Shadow)</option>
-                        <option value="女族长 (Matriarch/Hera)">女族长：家庭与权力的守护者 (Hera)</option>
-                        <option value="怨妇 (Scorned Woman)">怨妇：嫉妒的复仇者 (Hera Shadow)</option>
-                        <option value="法老/专制者 (Pharaoh)">专制者：不仅要权力还要崇拜</option>
-                        <option value="破坏者 (Destroyer)">破坏者：为了重建而毁灭</option>
+                    <optgroup label="【权力与统治】 (Zeus/Hera 系)">
+                        <option value="领袖/国王 (King/Zeus)">领袖 (Zeus)</option>
+                        <option value="独裁者 (Dictator)">独裁者 (Zeus Shadow)</option>
+                        <option value="女族长 (Matriarch/Hera)">女族长 (Hera)</option>
+                        <option value="怨妇 (Scorned Woman)">怨妇 (Hera Shadow)</option>
+                        <option value="法老/专制者 (Pharaoh)">专制者 (Pharaoh)</option>
+                        <option value="破坏者 (Destroyer)">破坏者 (Destroyer)</option>
+                        <option value="统治者 (Ruler)">统治者 (Ruler)</option>
                     </optgroup>
 
-                    <optgroup label="【情感与奉献】 (Demeter/Poseidon/Isis系)">
-                        <option value="照顾者 (Nurturer/Demeter)">照顾者：无私的奉献 (Demeter)</option>
-                        <option value="过度控制的母亲 (Over-controlling)">控制狂：以爱之名的窒息 (Demeter Shadow)</option>
-                        <option value="艺术家 (Artist/Poseidon)">艺术家：情绪风暴的中心 (Poseidon)</option>
-                        <option value="施虐者 (Abuser)">施虐者：情绪失控的暴力 (Poseidon Shadow)</option>
-                        <option value="救世主 (Savior/Isis)">救赎者：意志坚定的女性领袖 (Isis)</option>
-                        <option value="毁灭者 (Destroyer/Isis Shadow)">极端主义者：为了信仰毁灭一切 (Isis Shadow)</option>
-                        <option value="弥赛亚 (Messiah/Osiris)">弥赛亚：牺牲与重生的男性 (Osiris)</option>
-                        <option value="惩罚者 (Punisher)">惩罚者：替天行道的私刑者 (Osiris Shadow)</option>
-                        <option value="好朋友 (Best Friend)">好朋友：忠诚的伙伴 (Friend)</option>
+                    <optgroup label="【情感与奉献】 (Demeter/Poseidon/Isis 系)">
+                        <option value="照顾者 (Nurturer/Demeter)">照顾者 (Demeter)</option>
+                        <option value="过度控制的母亲 (Over-controlling Mother)">控制狂母亲 (Demeter Shadow)</option>
+                        <option value="艺术家 (Artist/Poseidon)">艺术家 (Poseidon)</option>
+                        <option value="施虐者 (Abuser)">施虐者 (Poseidon Shadow)</option>
+                        <option value="救世主 (Savior/Isis)">救赎者 (Isis)</option>
+                        <option value="极端分子 (Zealot)">极端分子 (Isis Shadow)</option>
+                        <option value="弥赛亚 (Messiah/Osiris)">弥赛亚 (Osiris)</option>
+                        <option value="惩罚者 (Punisher)">惩罚者 (Osiris Shadow)</option>
+                        <option value="好朋友 (Best Friend)">好朋友 (Best Friend)</option>
                     </optgroup>
 
-                    <optgroup label="【行动与生存】 (Ares/Artemis系)">
-                        <option value="战士 (Warrior/Ares)">战士：为了胜利而战 (Ares)</option>
-                        <option value="复仇者 (Avenger)">复仇者：被仇恨驱动的战士 (Ares Shadow)</option>
-                        <option value="女猎手 (Amazon/Artemis)">女猎手：独立的自然之女 (Artemis)</option>
-                        <option value="蛇发女妖 (Gorgon)">蛇发女妖：与世隔绝的激进者 (Artemis Shadow)</option>
-                        <option value="角斗士 (Gladiator)">角斗士：为了生存而战 (Gladiator)</option>
-                        <option value="幸存者 (Survivor)">幸存者：无论如何都要活下去 (Survivor)</option>
+                    <optgroup label="【行动与生存】 (Ares/Artemis 系)">
+                        <option value="战士 (Warrior/Ares)">战士 (Ares)</option>
+                        <option value="复仇者 (Avenger)">复仇者 (Ares Shadow)</option>
+                        <option value="女猎手 (Amazon/Artemis)">女猎手 (Artemis)</option>
+                        <option value="蛇发女妖 (Gorgon)">蛇发女妖 (Artemis Shadow)</option>
+                        <option value="角斗士 (Gladiator)">角斗士 (Gladiator)</option>
+                        <option value="幸存者 (Survivor)">幸存者 (Survivor)</option>
                     </optgroup>
 
-                    <optgroup label="【自由与变革】 (Hermes/Dionysus系)">
-                        <option value="弄臣/愚者 (Fool/Hermes)">弄臣：幽默的边界打破者 (Hermes)</option>
-                        <option value="被遗弃者 (Derelict)">流浪汉：毫无责任感的骗子 (Hermes Shadow)</option>
-                        <option value="浪子 (Woman's Man/Dionysus)">浪子：永远长不大的彼得潘 (Dionysus)</option>
-                        <option value="诱惑者 (Seducer)">诱惑者：危险的情人 (Dionysus Shadow)</option>
-                        <option value="探险家 (Explorer)">探险家：寻找新世界 (Explorer)</option>
-                        <option value="赌徒 (Gambler)">赌徒：把人生当游戏 (Gambler)</option>
+                    <optgroup label="【自由与变革】 (Hermes/Dionysus 系)">
+                        <option value="弄臣 (Fool/Hermes)">弄臣 (Hermes)</option>
+                        <option value="流浪汉 (Derelict)">流浪汉 (Hermes Shadow)</option>
+                        <option value="浪子 (Woman's Man/Dionysus)">浪子 (Dionysus)</option>
+                        <option value="诱惑者 (Seducer)">诱惑者 (Dionysus Shadow)</option>
+                        <option value="探险家 (Explorer)">探险家 (Explorer)</option>
+                        <option value="赌徒 (Gambler)">赌徒 (Gambler)</option>
                     </optgroup>
 
-                    <optgroup label="【神秘与魅力】 (Aphrodite/Hestia系)">
-                        <option value="缪斯 (Muse/Aphrodite)">缪斯：灵感与诱惑的化身 (Aphrodite)</option>
-                        <option value="黑寡妇 (Femme Fatale)">黑寡妇：致命的诱惑 (Aphrodite Shadow)</option>
-                        <option value="神秘主义者 (Mystic/Hestia)">神秘者：内在的宁静 (Hestia)</option>
-                        <option value="背叛者 (Betrayer/Hestia Shadow)">伪善者：虚假的各种精神领袖 (Hestia Shadow)</option>
-                        <option value="少女 (Maiden/Persephone)">少女：天真与依恋 (Persephone)</option>
-                        <option value="问题少女 (Troubled Teen)">问题少女：叛逆与操纵 (Persephone Shadow)</option>
-                        <option value="魔术师 (Magician)">魔术师：改变现实的人 (Magician)</option>
+                    <optgroup label="【神秘与魅力】 (Aphrodite/Hestia 系)">
+                        <option value="缪斯 (Muse/Aphrodite)">缪斯 (Aphrodite)</option>
+                        <option value="黑寡妇 (Femme Fatale)">黑寡妇 (Aphrodite Shadow)</option>
+                        <option value="神秘主义者 (Mystic/Hestia)">神秘者 (Hestia)</option>
+                        <option value="背叛者 (Betrayer)">伪善者 (Hestia Shadow)</option>
+                        <option value="少女 (Maiden/Persephone)">少女 (Persephone)</option>
+                        <option value="问题少女 (Troubled Teen)">问题少女 (Persephone Shadow)</option>
+                        <option value="魔术师 (Magician)">魔术师 (Magician)</option>
                     </optgroup>
                 </select>
             </div>
@@ -348,18 +365,18 @@
                     <div class="info-icon" onclick="toggleInfo('info-shadow')">?</div>
                 </div>
                 <div id="info-shadow" class="info-text">
-                    <strong>阴影（Shadow）：</strong>荣格认为阴影是“通往无意识的狭窄之门”[CW 9i]。它是人格中因适应社会而被压抑的黑暗面，但也是生命力和创造力的源泉。没有阴影的人物是扁平的“纸片人”。我们不仅要看它的破坏力，更要看它如何推动人物成长。
+                    <strong>阴影：</strong>通往无意识的“狭窄之门”[CW 9i]。它是被压抑的生命力。没有阴影的人物是纸片人。
                 </div>
                 <select id="shadow" class="glod-select">
-                    <option value="auto">🔮 随机匹配 (AI分析最深恐惧)</option>
-                    <option value="独裁者 (The Tyrant)">独裁者 (因恐惧失控)</option>
-                    <option value="背叛者 (The Traitor)">背叛者 (因过度理智)</option>
-                    <option value="毁灭者 (The Destroyer)">毁灭者 (因压抑愤怒)</option>
-                    <option value="受害者 (The Victim)">受害者 (因渴求关注)</option>
-                    <option value="成瘾者 (The Addict)">成瘾者 (因逃避现实)</option>
-                    <option value="黑寡妇 (The Black Widow)">黑寡妇 (因渴望操纵)</option>
-                    <option value="冷血机器 (The Robot)">冷血机器 (因切断情感)</option>
-                    <option value="吸血鬼 (The Vampire)">精神吸血鬼 (因内心空虚)</option>
+                    <option value="auto">🔮 随机匹配！</option>
+                    <option value="独裁者 (The Tyrant)">独裁者 (The Tyrant)</option>
+                    <option value="背叛者 (The Traitor)">背叛者 (The Traitor)</option>
+                    <option value="毁灭者 (The Destroyer)">毁灭者 (The Destroyer)</option>
+                    <option value="受害者 (The Victim)">受害者 (The Victim)</option>
+                    <option value="成瘾者 (The Addict)">成瘾者 (The Addict)</option>
+                    <option value="黑寡妇 (The Black Widow)">黑寡妇 (The Black Widow)</option>
+                    <option value="冷血机器 (The Robot)">冷血机器 (The Robot)</option>
+                    <option value="精神吸血鬼 (The Vampire)">精神吸血鬼 (The Vampire)</option>
                 </select>
             </div>
 
@@ -369,19 +386,19 @@
                     <div class="info-icon" onclick="toggleInfo('info-stage')">?</div>
                 </div>
                 <div id="info-stage" class="info-text">
-                    <strong>英雄之旅（Hero's Journey）：</strong>基于约瑟夫·坎贝尔《千面英雄》。神话不仅是故事，而是心理成长的隐喻。单一神话结构包括：启程（响应召唤）、试炼（鲸鱼之腹/最低谷）、归来（跨越阈限并带回恩赐）。
+                    <strong>英雄之旅：</strong>基于坎贝尔《千面英雄》。神话是心理成长的隐喻。单一神话结构：启程、试炼、归来。
                 </div>
                 <select id="stage" class="glod-select">
-                    <option value="启程：日常生活的崩塌">启程：日常生活的崩塌</option>
-                    <option value="试炼：鲸鱼之腹">试炼：鲸鱼之腹 (最低谷)</option>
-                    <option value="高潮：与阴影的决战">高潮：与阴影的决战</option>
-                    <option value="归来：跨越回归的阈限">归来：跨越回归的阈限</option>
+                    <option value="启程：日常生活的崩塌">启程：日常生活的崩塌 (Call to Adventure)</option>
+                    <option value="试炼：鲸鱼之腹">试炼：鲸鱼之腹 (Lowest Point)</option>
+                    <option value="高潮：与阴影的决战">高潮：与阴影的决战 (The Ordeal)</option>
+                    <option value="归来：跨越回归的阈限">归来：跨越回归的阈限 (The Return)</option>
                 </select>
             </div>
 
             <div class="control-item">
                 <label class="control-label">4. 时代背景 (Context)</label>
-                <input type="text" id="context" class="glod-input" value="现代都市" placeholder="例：2077年赛博夜之城，或90年代香港...">
+                <input type="text" id="context" class="glod-input" value="现代都市" placeholder="例：2077年赛博夜之城...">
             </div>
 
             <button class="alchemy-btn" onclick="generateProfile()">⚗️ 注入灵魂 · 开始炼成</button>
@@ -401,15 +418,16 @@
         <div class="modal-box">
             <h2>心理学与炼金术</h2>
             <div style="text-align:center; font-style:italic; color:#8a7348; margin-bottom:20px;">
-                "只要你没有觉知到潜意识，它就会主导你的生活，而你称之为命运。" 
+                "只要你没有觉知到潜意识，它就会主导你的生活，而你称之为命运。"
+            </div>
             <p><strong>为什么叫“人物炼金台”？</strong><br>
             荣格在《心理学与炼金术》中指出，中世纪炼金术士试图将铅变成金的过程，实际上是人类心灵“个性化”（Individuation）的隐喻。本工具正是基于这一理念：创作人物的过程，就是将粗糙的性格素材（铅），通过阴影的试炼，转化为完整灵魂（金）的过程。</p>
             <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
             <h3>理论基石</h3>
             <ul>
-                <li><strong>荣格分析心理学 (Jungian Analytical Psychology)：</strong> 提供“原型”作为心理结构的基础，提供“阴影”作为心理动力的源泉。</li>
-                <li><strong>神话学 (Joseph Campbell)：</strong> 提供“英雄之旅”作为叙事的时间轴，隐喻人的成长阶段。</li>
-                <li><strong>经典人物原型45种 (Victoria Lynn Schmidt)：</strong> 提供45种原型的现代转译，连接神话与现实。</li>
+                <li><strong>荣格分析心理学：</strong> 提供“原型”作为心理结构的基础，提供“阴影”作为动力。</li>
+                <li><strong>神话学理论：</strong> 提供“英雄之旅”作为叙事的时间轴。</li>
+                <li><strong>经典人物原型45种：</strong> 提供45种原型的现代转译。</li>
             </ul>
             <button class="close-modal" onclick="closeModal('theory')">关闭</button>
         </div>
@@ -430,13 +448,7 @@
     </div>
 
     <script>
-        // --- 逻辑：解释文本展开 ---
-        function toggleInfo(id) {
-            const el = document.getElementById(id);
-            el.classList.toggle('show');
-        }
-
-        // --- 特效：流金尘埃 ---
+        // --- 修复版逻辑：特效 ---
         function createDust() {
             const container = document.getElementById('dust-container');
             for(let i=0; i<45; i++) {
@@ -452,10 +464,22 @@
         }
         createDust();
 
-        // --- 逻辑：弹窗/API/生成 ---
-        function openModal(id) { document.getElementById('modal-' + id).classList.add('active'); }
-        function closeModal(id) { document.getElementById('modal-' + id).classList.remove('active'); }
+        // --- 修复版逻辑：弹窗交互 ---
+        function openModal(id) { 
+            const modal = document.getElementById('modal-' + id);
+            if(modal) modal.classList.add('active');
+        }
+        function closeModal(id) { 
+            const modal = document.getElementById('modal-' + id);
+            if(modal) modal.classList.remove('active');
+        }
 
+        function toggleInfo(id) {
+            const el = document.getElementById(id);
+            if(el) el.classList.toggle('show');
+        }
+
+        // --- 修复版逻辑：API 与生成 ---
         const providers = {
             'silicon_cn': 'https://api.siliconflow.cn/v1/chat/completions',
             'silicon_com': 'https://api.siliconflow.com/v1/chat/completions',
@@ -465,6 +489,10 @@
         const apiKeyInput = document.getElementById('api-key');
         if(localStorage.getItem('user_api_key')) apiKeyInput.value = localStorage.getItem('user_api_key');
         apiKeyInput.addEventListener('input', (e) => localStorage.setItem('user_api_key', e.target.value));
+
+        function updateProvider() {
+            // 这里可以添加切换逻辑提示，当前暂不需要额外操作
+        }
 
         async function generateProfile() {
             const providerKey = document.getElementById('provider-select').value;
@@ -480,7 +508,7 @@
             const btn = document.querySelector('.alchemy-btn');
 
             if (!apiKey) { alert("请先填入 API Key"); return; }
-            if (!archetype) { alert("请选择原型"); return; }
+            if (!archetype) { alert("请选择人物原型"); return; }
 
             btn.disabled = true;
             btn.innerHTML = "🔥 炼金之火燃烧中...";
