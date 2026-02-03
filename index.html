@@ -8,10 +8,10 @@
         /* --- 0. 全局变量：黑金配色 (增强版) --- */
         :root {
             --bg-deep: #050505;
-            --card-bg: rgba(16, 16, 16, 0.92); /* 稍微加深背景 */
+            --card-bg: rgba(16, 16, 16, 0.92);
             --gold-dim: #8a7348;
             --gold-bright: #ffdb8b; 
-            --gold-glow: rgba(255, 215, 0, 0.25); /* 调整光晕透明度 */
+            --gold-glow: rgba(255, 215, 0, 0.25);
             --text-main: #e0d6c5;
             --border-color: #4a3b22;
         }
@@ -150,6 +150,10 @@
             transition: 0.3s;
         }
         select.glod-select:focus { border-color: var(--gold-bright); box-shadow: 0 0 15px var(--gold-glow); }
+        
+        /* optgroup 样式优化 */
+        optgroup { color: var(--gold-dim); font-style: normal; font-weight: bold; }
+        option { color: var(--text-main); background: #111; padding: 5px; }
 
         .alchemy-btn {
             margin-top: 15px; padding: 16px;
@@ -271,29 +275,69 @@
                     <div class="info-icon" onclick="toggleInfo('info-archetype')">?</div>
                 </div>
                 <div id="info-archetype" class="info-text">
-                    <strong>原型（Archetype）：</strong>基于荣格《原型与集体无意识》[CW 9i]。原型并非具体的人物，而是集体无意识中预存的“形式”或“干枯的河床” (Riverbed)。只有当个人经验之水流过，它才显现出具体的性格。本工具采用维多利亚·施密特的45种神话模型进行现代转译。
+                    <strong>原型（Archetype）：</strong>基于荣格《原型与集体无意识》[CW 9i]。本工具收录了维多利亚·施密特《经典人物原型45种》中的全部主要原型。请注意：括号内的神话名字（如 Apollo）仅为心理能量的代号，请将其理解为一种现代性格倾向。
                 </div>
                 <select id="archetype" class="glod-select">
-                    <option value="" disabled selected>-- 请选择核心人格 --</option>
-                    <optgroup label="【理智与秩序】">
-                        <option value="实干家 (Apollo)">实干家：追求目标与秩序 (Apollo)</option>
-                        <option value="策略家 (Athena)">策略家：理智、甚至有些冷酷 (Athena)</option>
-                        <option value="隐士 (Hades)">隐士：深邃的孤独观察者 (Hades)</option>
+                    <option value="" disabled selected>-- 请选择核心人格 (全典藏版) --</option>
+                    
+                    <optgroup label="【理智与策略】 (Apollo/Athena系)">
+                        <option value="实干家 (Businessman/Apollo)">实干家：追求目标与秩序 (Apollo)</option>
+                        <option value="叛徒 (Traitor)">叛徒：为了利益出卖盟友 (Apollo Shadow)</option>
+                        <option value="策略家 (Father's Daughter/Athena)">策略家：理智、甚至有些冷酷 (Athena)</option>
+                        <option value="背后捅刀者 (Backstabber)">背后捅刀者：职场阴谋家 (Athena Shadow)</option>
+                        <option value="隐士 (Recluse/Hades)">隐士：深邃的孤独观察者 (Hades)</option>
+                        <option value="术士 (Warlock)">术士：危险的边缘人 (Hades Shadow)</option>
+                        <option value="导师 (Mentor)">导师：智慧的指引者 (Supporting)</option>
+                        <option value="侦探/调查员 (Investigator)">侦探：寻找真相的人 (Supporting)</option>
                     </optgroup>
-                    <optgroup label="【权力与意志】">
-                        <option value="领袖 (Zeus)">领袖：掌控一切的权威 (Zeus)</option>
-                        <option value="女族长 (Hera)">女族长：家庭与权力的守护者 (Hera)</option>
-                        <option value="战士 (Ares)">战士：为了胜利而战 (Ares)</option>
+
+                    <optgroup label="【权力与统治】 (Zeus/Hera系)">
+                        <option value="领袖/国王 (King/Zeus)">领袖：掌控一切的权威 (Zeus)</option>
+                        <option value="独裁者 (Dictator)">独裁者：偏执的暴君 (Zeus Shadow)</option>
+                        <option value="女族长 (Matriarch/Hera)">女族长：家庭与权力的守护者 (Hera)</option>
+                        <option value="怨妇 (Scorned Woman)">怨妇：嫉妒的复仇者 (Hera Shadow)</option>
+                        <option value="法老/专制者 (Pharaoh)">专制者：不仅要权力还要崇拜</option>
+                        <option value="破坏者 (Destroyer)">破坏者：为了重建而毁灭</option>
                     </optgroup>
-                    <optgroup label="【情感与连接】">
-                        <option value="照顾者 (Demeter)">照顾者：无私的奉献 (Demeter)</option>
-                        <option value="艺术家 (Poseidon)">艺术家：情绪风暴的中心 (Poseidon)</option>
-                        <option value="缪斯 (Aphrodite)">缪斯：灵感与诱惑的化身 (Aphrodite)</option>
+
+                    <optgroup label="【情感与奉献】 (Demeter/Poseidon/Isis系)">
+                        <option value="照顾者 (Nurturer/Demeter)">照顾者：无私的奉献 (Demeter)</option>
+                        <option value="过度控制的母亲 (Over-controlling)">控制狂：以爱之名的窒息 (Demeter Shadow)</option>
+                        <option value="艺术家 (Artist/Poseidon)">艺术家：情绪风暴的中心 (Poseidon)</option>
+                        <option value="施虐者 (Abuser)">施虐者：情绪失控的暴力 (Poseidon Shadow)</option>
+                        <option value="救世主 (Savior/Isis)">救赎者：意志坚定的女性领袖 (Isis)</option>
+                        <option value="毁灭者 (Destroyer/Isis Shadow)">极端主义者：为了信仰毁灭一切 (Isis Shadow)</option>
+                        <option value="弥赛亚 (Messiah/Osiris)">弥赛亚：牺牲与重生的男性 (Osiris)</option>
+                        <option value="惩罚者 (Punisher)">惩罚者：替天行道的私刑者 (Osiris Shadow)</option>
+                        <option value="好朋友 (Best Friend)">好朋友：忠诚的伙伴 (Supporting)</option>
                     </optgroup>
-                    <optgroup label="【自由与变革】">
-                        <option value="弄臣 (Hermes)">弄臣：幽默的边界打破者 (Hermes)</option>
-                        <option value="女猎手 (Artemis)">女猎手：独立的自然之女 (Artemis)</option>
-                        <option value="浪子 (Dionysus)">浪子：永远长不大的彼得潘 (Dionysus)</option>
+
+                    <optgroup label="【行动与生存】 (Ares/Artemis系)">
+                        <option value="战士 (Warrior/Ares)">战士：为了胜利而战 (Ares)</option>
+                        <option value="复仇者 (Avenger)">复仇者：被仇恨驱动的战士 (Ares Shadow)</option>
+                        <option value="女猎手 (Amazon/Artemis)">女猎手：独立的自然之女 (Artemis)</option>
+                        <option value="蛇发女妖 (Gorgon)">蛇发女妖：与世隔绝的激进者 (Artemis Shadow)</option>
+                        <option value="角斗士 (Gladiator)">角斗士：为了生存而战 (Supporting)</option>
+                        <option value="幸存者 (Survivor)">幸存者：无论如何都要活下去 (Supporting)</option>
+                    </optgroup>
+
+                    <optgroup label="【自由与变革】 (Hermes/Dionysus系)">
+                        <option value="弄臣/愚者 (Fool/Hermes)">弄臣：幽默的边界打破者 (Hermes)</option>
+                        <option value="被遗弃者 (Derelict)">流浪汉：毫无责任感的骗子 (Hermes Shadow)</option>
+                        <option value="浪子 (Woman's Man/Dionysus)">浪子：永远长不大的彼得潘 (Dionysus)</option>
+                        <option value="诱惑者 (Seducer)">诱惑者：危险的情人 (Dionysus Shadow)</option>
+                        <option value="探险家 (Explorer)">探险家：寻找新世界 (Supporting)</option>
+                        <option value="赌徒 (Gambler)">赌徒：把人生当游戏 (Supporting)</option>
+                    </optgroup>
+
+                    <optgroup label="【神秘与魅力】 (Aphrodite/Hestia系)">
+                        <option value="缪斯 (Muse/Aphrodite)">缪斯：灵感与诱惑的化身 (Aphrodite)</option>
+                        <option value="黑寡妇 (Femme Fatale)">黑寡妇：致命的诱惑 (Aphrodite Shadow)</option>
+                        <option value="神秘主义者 (Mystic/Hestia)">神秘者：内在的宁静 (Hestia)</option>
+                        <option value="背叛者 (Betrayer/Hestia Shadow)">伪善者：虚假的各种精神领袖 (Hestia Shadow)</option>
+                        <option value="少女 (Maiden/Persephone)">少女：天真与依恋 (Persephone)</option>
+                        <option value="问题少女 (Troubled Teen)">问题少女：叛逆与操纵 (Persephone Shadow)</option>
+                        <option value="魔术师 (Magician)">魔术师：改变现实的人 (Supporting)</option>
                     </optgroup>
                 </select>
             </div>
@@ -308,13 +352,14 @@
                 </div>
                 <select id="shadow" class="glod-select">
                     <option value="auto">🔮 随机匹配 (AI分析最深恐惧)</option>
-                    <option value="独裁者">独裁者 (对应领袖)</option>
-                    <option value="背叛者">背叛者 (对应实干家)</option>
-                    <option value="毁灭者">毁灭者 (对应战士)</option>
-                    <option value="受害者">受害者 (对应照顾者)</option>
-                    <option value="成瘾者">成瘾者 (对应浪子)</option>
-                    <option value="黑寡妇">黑寡妇 (对应缪斯)</option>
-                    <option value="冷血机器">冷血机器 (对应策略家)</option>
+                    <option value="独裁者 (The Tyrant)">独裁者 (因恐惧失控)</option>
+                    <option value="背叛者 (The Traitor)">背叛者 (因过度理智)</option>
+                    <option value="毁灭者 (The Destroyer)">毁灭者 (因压抑愤怒)</option>
+                    <option value="受害者 (The Victim)">受害者 (因渴求关注)</option>
+                    <option value="成瘾者 (The Addict)">成瘾者 (因逃避现实)</option>
+                    <option value="黑寡妇 (The Black Widow)">黑寡妇 (因渴望操纵)</option>
+                    <option value="冷血机器 (The Robot)">冷血机器 (因切断情感)</option>
+                    <option value="吸血鬼 (The Vampire)">精神吸血鬼 (因内心空虚)</option>
                 </select>
             </div>
 
@@ -336,7 +381,7 @@
 
             <div class="control-item">
                 <label class="control-label">4. 时代背景 (Context)</label>
-                <input type="text" id="context" class="glod-input" value="现代都市" placeholder="例：2077年赛博夜之城...">
+                <input type="text" id="context" class="glod-input" value="现代都市" placeholder="例：2077年赛博夜之城，或90年代香港...">
             </div>
 
             <button class="alchemy-btn" onclick="generateProfile()">⚗️ 注入灵魂 · 开始炼成</button>
@@ -356,7 +401,7 @@
         <div class="modal-box">
             <h2>心理学与炼金术</h2>
             <div style="text-align:center; font-style:italic; color:#8a7348; margin-bottom:20px;">
-                "只要你没有觉知到潜意识，它就会主导你的生活，而你称之为命运。" —— C.G.Jung
+                "只要你没有觉知到潜意识，它就会主导你的生活，而你称之为命运。" —— C.G. Jung
             </div>
             <p><strong>为什么叫“人物炼金台”？</strong><br>
             荣格在《心理学与炼金术》中指出，中世纪炼金术士试图将铅变成金的过程，实际上是人类心灵“个性化”（Individuation）的隐喻。本工具正是基于这一理念：创作人物的过程，就是将粗糙的性格素材（铅），通过阴影的试炼，转化为完整灵魂（金）的过程。</p>
@@ -455,7 +500,7 @@
                 <h3>Ⅰ. 人物侧写 (Profile)</h3>
                 <p>
                 <strong>姓名：</strong>[随机]<br>
-                <strong>表象职业：</strong>[符合原型但有反差感的现代职业] (请不要全部为生成程序员或AI相关职业！请广泛尝试：体力劳动者、传统手艺人、服务业、医生、教师、艺术家、公务员等职业)<br>
+                <strong>表象职业：</strong>[符合原型但有反差感的现代职业] (严禁全部生成程序员或AI相关工作！请广泛尝试：体力劳动者、传统手艺人、服务业、医生、教师、艺术家、公务员等具有烟火气的职业)<br>
                 <strong>核心欲望：</strong>[原型动力]<br>
                 <strong>最大恐惧：</strong>[阴影恐惧]
                 </p>
